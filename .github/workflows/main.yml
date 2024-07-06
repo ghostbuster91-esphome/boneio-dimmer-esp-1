@@ -1,0 +1,74 @@
+name: main
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  ESPHOME_VERSION: 2024.4.2
+
+jobs:
+  build-boneio-24-sw:
+    name: build boneio-24-sw
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.7
+
+      - name: build
+        uses: esphome/build-action@v1
+        id: esphome-build
+        with:
+          yaml_file: boneio-24-sw-07-737d50.yaml
+          version: ${{ env.ESPHOME_VERSION }}
+      - run: |
+          mkdir output
+          mv "${{ steps.esphome-build.outputs.name }}" output/
+      - uses: actions/upload-artifact@v4.3.4
+        with:
+          name: boneio-24-sw
+          path: output
+
+  build-boneio-dr-8ch:
+    name: build boneio-dr-8ch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.7
+
+      - name: build
+        uses: esphome/build-action@v1
+        id: esphome-build
+        with:
+          yaml_file: boneio-dr-8ch-03-4023d4.yaml
+          version: ${{ env.ESPHOME_VERSION }}
+      - run: |
+          mkdir output
+          mv "${{ steps.esphome-build.outputs.name }}" output/
+      - uses: actions/upload-artifact@v4.3.4
+        with:
+          name: boneio-dr-8ch
+          path: output
+
+  create-release:
+    name: create github release
+    runs-on: ubuntu-latest
+    needs:
+      - build-boneio-24-sw
+      - build-boneio-dr-8ch
+    steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v4
+
+      - name: debug
+        run: ls
+
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          commit: ${{ github.sha }}
+          makeLatest: true
+          artifacts:
+            - build-boneio-dr-8ch/*
