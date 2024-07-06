@@ -30,6 +30,7 @@ jobs:
       - run: |
           mkdir output/
           mv "${{ steps.esphome-build.outputs.name }}"/* output/
+          ls output
 
       - name: Adjust manifest path
         run: |
