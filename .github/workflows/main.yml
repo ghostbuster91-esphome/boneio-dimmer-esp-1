@@ -29,7 +29,7 @@ jobs:
 
       - run: |
           mkdir output/
-          mv "${{ steps.esphome-build.outputs.name }}"/boneio-dr-8ch-03-4023d4-esp32 output/
+          mv "${{ steps.esphome-build.outputs.name }}"/* output/
 
       - name: Adjust manifest path
         run: |
