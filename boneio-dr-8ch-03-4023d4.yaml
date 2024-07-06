@@ -41,10 +41,23 @@ pcf8574:
 - id: pcf_inputs
   address: 0x38
 
+http_request:
+  useragent: esphome/device
+  timeout: 10s
+  verify_ssl: false
+
 logger:
 api:
   reboot_timeout: 0s
 ota:
+  - platform: esphome
+  - platform: http_request
+
+update:
+  - platform: http_request
+    name: Firmware Update
+    source: https://github.com/ghostbuster91-esphome/boneio-dimmer-esp-1/releases/latest/download/manifest.json
+    update_interval: 25min
 
 web_server:
   port: 80
