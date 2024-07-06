@@ -34,7 +34,8 @@ jobs:
 
       - name: Adjust manifest path
         run: |
-          cat output/manifest.json | jq '(.ota.path, .parts[].path) |= sub("boneio-dr-8ch-03-4023d4-esp32/"; "")' > output/manifest.json
+          mv output/manifest.json output/manifest.json.back
+          cat output/manifest.json.back | jq '(.ota.path, .parts[].path) |= sub("boneio-dr-8ch-03-4023d4-esp32/"; "")' > output/manifest.json
 
       - name: Get short SHA
         id: short_sha
