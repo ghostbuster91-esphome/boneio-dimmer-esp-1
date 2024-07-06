@@ -29,11 +29,11 @@ jobs:
 
       - run: |
           mkdir output
-          mv "${{ steps.esphome-build.outputs.name }}"/boneio-dr-8ch-03-4023d4/* output/
+          mv "${{ steps.esphome-build.outputs.name }}"/boneio-dr-8ch-03-4023d4-esp32/ output/
 
       - name: Adjust manifest path
         run: |
-          cat output/boneio-dr-8ch-03-4023d4/manifest.json | jq '(.ota.path, .parts[].path) |= sub("boneio-dr-8ch-03-4023d4-esp32/"; "")' > output/boneio-dr-8ch-03-4023d4/manifest.json
+          cat output/manifest.json | jq '(.ota.path, .parts[].path) |= sub("boneio-dr-8ch-03-4023d4-esp32/"; "")' > output/manifest.json
 
       - name: Get short SHA
         id: short_sha
