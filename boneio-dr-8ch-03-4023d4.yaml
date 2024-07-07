@@ -1,7 +1,7 @@
 substitutions:
   name: boneio-dr-8ch-03-4023d4
   friendly_name: BoneIO Dimmer LED 4023d4
-  serial_prefix: dim   #Don't change it.
+  serial_prefix: dim #Don't change it.
 
 esphome:
   name: ${name}
@@ -9,20 +9,25 @@ esphome:
   name_add_mac_suffix: false
   project:
     name: boneio.dimmer-led
-    version: '0.3'
+    version: "0.3"
 
 esp32:
   board: esp32dev
 
 external_components:
-- source: github://boneIO-eu/esphome-LM75@main   #Original source and thank you note for BTomala https://github.com/boneIO-eu/esphome-lm75
-  components: [lm75]
+  - source: github://boneIO-eu/esphome-LM75@main #Original source and thank you note for BTomala https://github.com/boneIO-eu/esphome-lm75
+    components: [lm75]
 
 packages:
   internals_packages:
     url: https://github.com/boneIO-eu/esphome
     ref: v1.1.0
-    files: [devices/serial_no.yaml, devices/dimmer_i2c.yaml, devices/dimmer_ina219.yaml]
+    files:
+      [
+        devices/serial_no.yaml,
+        devices/dimmer_i2c.yaml,
+        devices/dimmer_ina219.yaml,
+      ]
 
 ethernet:
   id: eth
@@ -38,8 +43,8 @@ dashboard_import:
   import_full_config: true
 
 pcf8574:
-- id: pcf_inputs
-  address: 0x38
+  - id: pcf_inputs
+    address: 0x38
 
 logger:
 api:
@@ -47,257 +52,287 @@ api:
 ota:
   - platform: esphome
   - platform: http_request
+    on_begin:
+      then:
+        - logger.log: "OTA start"
+    on_progress:
+      then:
+        - logger.log:
+            format: "OTA progress %0.1f%%"
+            args: ["x"]
+    on_end:
+      then:
+        - logger.log: "OTA end"
+    on_error:
+      then:
+        - logger.log:
+            format: "OTA update error %d"
+            args: ["x"]
+
+http_request:
+  useragent: esphome/device
+  timeout: 10s
+  verify_ssl: false
+  watchdog_timeout: 10s
 
 web_server:
   port: 80
   local: true
 
 text_sensor:
-- platform: version
-  name: boneio-dimmer- Version
-  icon: mdi:cube-outline
-  entity_category: diagnostic
-- platform: ethernet_info
-  ip_address:
+  - platform: version
+    name: boneio-dimmer- Version
+    icon: mdi:cube-outline
     entity_category: diagnostic
-    name: boneio-dimmer IP
-- platform: template
-  name: Hostname
-  id: hostname
-  entity_category: diagnostic
-  lambda: |-
-    return id(eth).get_use_address();
-  update_interval: 5min
+  - platform: ethernet_info
+    ip_address:
+      entity_category: diagnostic
+      name: boneio-dimmer IP
+  - platform: template
+    name: Hostname
+    id: hostname
+    entity_category: diagnostic
+    lambda: |-
+      return id(eth).get_use_address();
+    update_interval: 5min
 
 globals:
-   - id: lastDirection
-     type: bool
-     restore_value: no
-     initial_value: 'true'
-
-http_request:
-  useragent: esphome/device
-  timeout: 10s
-  verify_ssl: false
-
-# update:
-#   - platform: http_request
-#     name: Firmware Update
-#     source: http://esphome-firmware.local/ghostbuster91-esphome/boneio-dimmer-esp-1/releases/latest/download/manifest.json
-#     update_interval: 25min
+  - id: lastDirection
+    type: bool
+    restore_value: no
+    initial_value: "true"
 
 binary_sensor:
-- platform: gpio
-  id: btn_01
-  name: IN_01
-  pin:
-    pcf8574: pcf_inputs
-    number: 1
-    mode:
-      input: true
-    inverted: true
-  on_click:
-    then:
-    - if:
-        condition:
-          light.is_off: chl_01_02
-        then:
-        - light.turn_on: 
-            id: chl_01_02
-            brightness: 1.0
-        - lambda: 'id(lastDirection) = false;'                 
-        else:
-        - light.turn_off: chl_01_02
-        - lambda: 'id(lastDirection) = true;'            
-  on_press:
-    then:
-    - if:
-        condition: 
-          or:
-            - light.is_off: chl_01_02
-            - lambda: 'return id(lastDirection) == true;'
-        then:
-        - delay: 0.5s
-        - while:
+  - platform: gpio
+    id: btn_01
+    name: IN_01
+    pin:
+      pcf8574: pcf_inputs
+      number: 1
+      mode:
+        input: true
+      inverted: true
+    on_click:
+      then:
+        - if:
             condition:
-              binary_sensor.is_on: btn_01
+              light.is_off: chl01_02
             then:
-              - lambda: 'id(lastDirection) = false;'                 
-              - light.dim_relative:
-                  id: chl_01_02
-                  relative_brightness: 5%
-                  transition_length: 0.1s
-              - delay: 0.1s
-        else:
-        - delay: 0.5s
-        - while:
+              - light.turn_on:
+                  id: chl01_02
+                  brightness: 1.0
+              - lambda: "id(lastDirection) = false;"
+            else:
+              - light.turn_off: chl01_02
+              - lambda: "id(lastDirection) = true;"
+    on_press:
+      then:
+        - if:
             condition:
-              and:
-                - binary_sensor.is_on: btn_01
-                - light.is_on: chl_01_02
-                - lambda: 'return id(chl_01_02).current_values.get_brightness() > 0.1;'
+              or:
+                - light.is_off: chl01_02
+                - lambda: "return id(lastDirection) == true;"
             then:
-              - lambda: 'id(lastDirection) = true;'              
-              - light.dim_relative:
-                  id: chl_01_02
-                  relative_brightness: -5%
-                  transition_length: 0.1s
-              - delay: 0.1s
+              - delay: 0.5s
+              - while:
+                  condition:
+                    binary_sensor.is_on: btn_01
+                  then:
+                    - lambda: "id(lastDirection) = false;"
+                    - light.dim_relative:
+                        id: chl01_02
+                        relative_brightness: 5%
+                        transition_length: 0.1s
+                    - delay: 0.1s
+            else:
+              - delay: 0.5s
+              - while:
+                  condition:
+                    and:
+                      - binary_sensor.is_on: btn_01
+                      - light.is_on: chl01_02
+                      - lambda: "return id(chl01_02).current_values.get_brightness() > 0.2;"
+                  then:
+                    - lambda: "id(lastDirection) = true;"
+                    - logger.log:
+                        format: "Current brightness %.1f"
+                        args: ["id(chl01_02).current_values.get_brightness()"]
+                    - light.dim_relative:
+                        id: chl01_02
+                        relative_brightness: -5%
+                        transition_length: 0.1s
+                    - delay: 0.1s
 
+  - platform: gpio
+    id: btn_02
+    name: IN_02
+    pin:
+      pcf8574: pcf_inputs
+      number: 2
+      mode:
+        input: true
+      inverted: true
+    # on_click:
+    #   then:
+    #    - http_request.get:
+    #        url: http://192.168.10.175:8000/manifest.json
+    #        headers:
+    #          Content-Type: application/json
+    #        on_response:
+    #          then:
+    #            - logger.log:
+    #                format: 'Response status: %d, Duration: %u ms'
+    #                args:
+    #                  - response->status_code
+    #                  - response->duration_ms
+    # then:
+    #  - ota.http_request.flash:
+    #      url: http://esphome-firmware.local/ghostbuster91-esphome/boneio-dimmer-esp-1/releases/download/f00a8fa/boneio-dr-8ch-03-4023d4-esp32.ota.bin
+    #      md5: '78ff517bca8b7b4c83badef3a264452b'
+    #  - logger.log: "This message should be not displayed because the device reboots"
 
-- platform: gpio
-  id: btn_02
-  name: IN_02
-  pin:
-    pcf8574: pcf_inputs
-    number: 2
-    mode:
-      input: true
-    inverted: true
-   
-- platform: gpio
-  name: IN_03
-  pin:
-    pcf8574: pcf_inputs
-    number: 3
-    mode:
-      input: true
-    inverted: true
-- platform: gpio
-  name: IN_04
-  pin:
-    pcf8574: pcf_inputs
-    number: 4
-    mode:
-      input: true
-    inverted: true
-- platform: gpio
-  name: IN_05
-  pin:
-    number: 36
-    mode:
-      input: true
-    inverted: true
-- platform: gpio
-  name: IN_06
-  pin:
-    number: 39
-    mode:
-      input: true
-    inverted: true
-- platform: gpio
-  name: IN_07
-  pin:
-    number: 34
-    mode:
-      input: true
-    inverted: true
-- platform: gpio
-  name: IN_08
-  pin:
-    number: 35
-    mode:
-      input: true
-    inverted: true
+  - platform: gpio
+    name: IN_03
+    pin:
+      pcf8574: pcf_inputs
+      number: 3
+      mode:
+        input: true
+      inverted: true
+  - platform: gpio
+    name: IN_04
+    pin:
+      pcf8574: pcf_inputs
+      number: 4
+      mode:
+        input: true
+      inverted: true
+  - platform: gpio
+    name: IN_05
+    pin:
+      number: 36
+      mode:
+        input: true
+      inverted: true
+  - platform: gpio
+    name: IN_06
+    pin:
+      number: 39
+      mode:
+        input: true
+      inverted: true
+  - platform: gpio
+    name: IN_07
+    pin:
+      number: 34
+      mode:
+        input: true
+      inverted: true
+  - platform: gpio
+    name: IN_08
+    pin:
+      number: 35
+      mode:
+        input: true
+      inverted: true
 
 output:
-- platform: ledc
-  pin: 33
-  frequency: 1000Hz
-  inverted: false
-  id: chl01
-- platform: ledc
-  pin: 32
-  frequency: 1000Hz
-  inverted: false
-  id: chl02
-- platform: ledc
-  pin: 12
-  frequency: 1000Hz
-  inverted: false
-  id: chl03
-- platform: ledc
-  pin: 14
-  frequency: 1000Hz
-  inverted: false
-  id: chl04
+  - platform: ledc
+    pin: 33
+    frequency: 1000Hz
+    inverted: false
+    id: chl01
+  - platform: ledc
+    pin: 32
+    frequency: 1000Hz
+    inverted: false
+    id: chl02
+  - platform: ledc
+    pin: 12
+    frequency: 1000Hz
+    inverted: false
+    id: chl03
+  - platform: ledc
+    pin: 14
+    frequency: 1000Hz
+    inverted: false
+    id: chl04
 
-- platform: ledc
-  pin: 13
-  frequency: 1000Hz
-  inverted: false
-  id: chr01
-- platform: ledc
-  pin: 15
-  frequency: 1000Hz
-  inverted: false
-  id: chr02
-- platform: ledc
-  pin: 2
-  frequency: 1000Hz
-  inverted: false
-  id: chr03
-- platform: ledc
-  pin: 17
-  frequency: 1000Hz
-  inverted: false
-  id: chr04
+  - platform: ledc
+    pin: 13
+    frequency: 1000Hz
+    inverted: false
+    id: chr01
+  - platform: ledc
+    pin: 15
+    frequency: 1000Hz
+    inverted: false
+    id: chr02
+  - platform: ledc
+    pin: 2
+    frequency: 1000Hz
+    inverted: false
+    id: chr03
+  - platform: ledc
+    pin: 17
+    frequency: 1000Hz
+    inverted: false
+    id: chr04
 
 light:
   - platform: cwww
-    id: chl_01_02
-    name: 'CHL_01_02'
+    id: chl01_02
+    name: "CHL_01_02"
     cold_white: chl01
     warm_white: chl02
     cold_white_color_temperature: 6000 K
     warm_white_color_temperature: 2000 K
 
   - platform: cwww
-    id: chl_03_04
-    name: 'CHL_03_04'
+    id: chl03_04
+    name: "CHL_03_04"
     cold_white: chl03
     warm_white: chl04
     cold_white_color_temperature: 6000 K
     warm_white_color_temperature: 2000 K
 
   - platform: cwww
-    id: chr_01_02
-    name: 'CHR_01_02'
+    id: chr01_02
+    name: "CHR_01_02"
     cold_white: chr01
     warm_white: chr02
     cold_white_color_temperature: 6000 K
     warm_white_color_temperature: 2000 K
 
   - platform: cwww
-    id: chr_03_04
-    name: 'CHR_03_04'
+    id: chr03_04
+    name: "CHR_03_04"
     cold_white: chr03
     warm_white: chr04
     cold_white_color_temperature: 6000 K
     warm_white_color_temperature: 2000 K
 
 sensor:
-- platform: lm75
-  id: boneIO_temp
-  name: Temperature
-  update_interval: 30s
-  entity_category: diagnostic
-  on_value_range:
-  - above: 70.0
-    then:
-    - switch.turn_on: buzzer
-  - below: 70.0
-    then:
-    - switch.turn_off: buzzer
+  - platform: lm75
+    id: boneIO_temp
+    name: Temperature
+    update_interval: 30s
+    entity_category: diagnostic
+    on_value_range:
+      - above: 70.0
+        then:
+          - switch.turn_on: buzzer
+      - below: 70.0
+        then:
+          - switch.turn_off: buzzer
 
 switch:
-- platform: gpio
-  id: buzzer
-  name: Buzzer
-  pin:
-    pcf8574: pcf_inputs
-    number: 0
-    mode:
-      output: true
-    inverted: true
-  
+  - platform: gpio
+    id: buzzer
+    name: Buzzer
+    pin:
+      pcf8574: pcf_inputs
+      number: 0
+      mode:
+        output: true
+      inverted: true
