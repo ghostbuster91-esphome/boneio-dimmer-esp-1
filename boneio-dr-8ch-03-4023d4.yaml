@@ -46,6 +46,7 @@ api:
   reboot_timeout: 0s
 ota:
   - platform: esphome
+  - platform: http_request
 
 web_server:
   port: 80
@@ -73,6 +74,17 @@ globals:
      type: bool
      restore_value: no
      initial_value: 'true'
+
+http_request:
+  useragent: esphome/device
+  timeout: 10s
+  verify_ssl: false
+
+# update:
+#   - platform: http_request
+#     name: Firmware Update
+#     source: http://esphome-firmware.local/ghostbuster91-esphome/boneio-dimmer-esp-1/releases/latest/download/manifest.json
+#     update_interval: 25min
 
 binary_sensor:
 - platform: gpio
