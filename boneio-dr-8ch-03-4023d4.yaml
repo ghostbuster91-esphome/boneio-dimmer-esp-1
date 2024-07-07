@@ -88,21 +88,21 @@ binary_sensor:
     then:
     - if:
         condition:
-          light.is_off: chl_01
+          light.is_off: chl_01_02
         then:
         - light.turn_on: 
-            id: chl_01
+            id: chl_01_02
             brightness: 1.0
         - lambda: 'id(lastDirection) = false;'                 
         else:
-        - light.turn_off: chl_01
+        - light.turn_off: chl_01_02
         - lambda: 'id(lastDirection) = true;'            
   on_press:
     then:
     - if:
         condition: 
           or:
-            - light.is_off: chl_01
+            - light.is_off: chl_01_02
             - lambda: 'return id(lastDirection) == true;'
         then:
         - delay: 0.5s
@@ -112,7 +112,7 @@ binary_sensor:
             then:
               - lambda: 'id(lastDirection) = false;'                 
               - light.dim_relative:
-                  id: chl_01
+                  id: chl_01_02
                   relative_brightness: 5%
                   transition_length: 0.1s
               - delay: 0.1s
@@ -122,12 +122,12 @@ binary_sensor:
             condition:
               and:
                 - binary_sensor.is_on: btn_01
-                - light.is_on: chl_01
-                - lambda: 'return id(chl_01).current_values.get_brightness() > 0.1;'
+                - light.is_on: chl_01_02
+                - lambda: 'return id(chl_01_02).current_values.get_brightness() > 0.1;'
             then:
               - lambda: 'id(lastDirection) = true;'              
               - light.dim_relative:
-                  id: chl_01
+                  id: chl_01_02
                   relative_brightness: -5%
                   transition_length: 0.1s
               - delay: 0.1s
@@ -232,55 +232,37 @@ output:
   id: chr04
 
 light:
-- platform: monochromatic
-  output: chl01
-  name: CHL 01
-  id: chl_01
-  default_transition_length: 2s
-  gamma_correct: 0
-- platform: monochromatic
-  output: chl02
-  name: CHL 02
-  id: chl_02
-  default_transition_length: 2s
-  gamma_correct: 0
-- platform: monochromatic
-  output: chl03
-  name: CHL 03
-  id: chl_03
-  default_transition_length: 2s
-  gamma_correct: 0
-- platform: monochromatic
-  output: chl04
-  name: CHL 04
-  id: chl_04
-  default_transition_length: 2s
-  gamma_correct: 0
+  - platform: cwww
+    id: chl_01_02
+    name: 'CHL_01_02'
+    cold_white: chl01
+    warm_white: chl02
+    cold_white_color_temperature: 6000 K
+    warm_white_color_temperature: 2000 K
 
-- platform: monochromatic
-  output: chr01
-  name: CHR 01
-  id: chr_01
-  default_transition_length: 2s
-  gamma_correct: 0
-- platform: monochromatic
-  output: chr02
-  name: CHR 02
-  id: chr_02
-  default_transition_length: 2s
-  gamma_correct: 0
-- platform: monochromatic
-  output: chr03
-  name: CHR 03
-  id: chr_03
-  default_transition_length: 2s
-  gamma_correct: 0
-- platform: monochromatic
-  output: chr04
-  name: CHR 04
-  id: chr_04
-  default_transition_length: 2s
-  gamma_correct: 0
+  - platform: cwww
+    id: chl_03_04
+    name: 'CHL_03_04'
+    cold_white: chl03
+    warm_white: chl04
+    cold_white_color_temperature: 6000 K
+    warm_white_color_temperature: 2000 K
+
+  - platform: cwww
+    id: chr_01_02
+    name: 'CHR_01_02'
+    cold_white: chr01
+    warm_white: chr02
+    cold_white_color_temperature: 6000 K
+    warm_white_color_temperature: 2000 K
+
+  - platform: cwww
+    id: chr_03_04
+    name: 'CHR_03_04'
+    cold_white: chr03
+    warm_white: chr04
+    cold_white_color_temperature: 6000 K
+    warm_white_color_temperature: 2000 K
 
 sensor:
 - platform: lm75
