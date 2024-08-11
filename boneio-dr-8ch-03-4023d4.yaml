@@ -52,11 +52,6 @@ api:
 ota:
   - platform: esphome
 
-http_request:
-  useragent: esphome/device
-  timeout: 10s
-  verify_ssl: false
-
 web_server:
   port: 80
   local: true
