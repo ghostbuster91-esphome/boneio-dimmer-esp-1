@@ -30,7 +30,8 @@
 
             programs = {
               nixpkgs-fmt.enable = true;
-              yamlfmt.enable = true;
+              # yamlls uses prettier under the hood but it might change https://github.com/redhat-developer/yaml-language-server/issues/933
+              prettier.enable = true;
             };
           };
         };
