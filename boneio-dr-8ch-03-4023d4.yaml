@@ -245,6 +245,7 @@ light:
     warm_white: chl02
     cold_white_color_temperature: 6000 K
     warm_white_color_temperature: 2000 K
+    constant_brightness: true
 
   - platform: cwww
     id: chl03_04
