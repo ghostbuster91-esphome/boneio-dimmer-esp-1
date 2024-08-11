@@ -51,29 +51,11 @@ api:
   reboot_timeout: 0s
 ota:
   - platform: esphome
-  - platform: http_request
-    on_begin:
-      then:
-        - logger.log: "OTA start"
-    on_progress:
-      then:
-        - logger.log:
-            format: "OTA progress %0.1f%%"
-            args: ["x"]
-    on_end:
-      then:
-        - logger.log: "OTA end"
-    on_error:
-      then:
-        - logger.log:
-            format: "OTA update error %d"
-            args: ["x"]
 
 http_request:
   useragent: esphome/device
   timeout: 10s
   verify_ssl: false
-  watchdog_timeout: 10s
 
 web_server:
   port: 80
@@ -172,25 +154,6 @@ binary_sensor:
       mode:
         input: true
       inverted: true
-    # on_click:
-    #   then:
-    #    - http_request.get:
-    #        url: http://192.168.10.175:8000/manifest.json
-    #        headers:
-    #          Content-Type: application/json
-    #        on_response:
-    #          then:
-    #            - logger.log:
-    #                format: 'Response status: %d, Duration: %u ms'
-    #                args:
-    #                  - response->status_code
-    #                  - response->duration_ms
-    # then:
-    #  - ota.http_request.flash:
-    #      url: http://esphome-firmware.local/ghostbuster91-esphome/boneio-dimmer-esp-1/releases/download/f00a8fa/boneio-dr-8ch-03-4023d4-esp32.ota.bin
-    #      md5: '78ff517bca8b7b4c83badef3a264452b'
-    #  - logger.log: "This message should be not displayed because the device reboots"
-
   - platform: gpio
     name: IN_03
     pin:
